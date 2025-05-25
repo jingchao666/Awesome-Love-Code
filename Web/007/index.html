@@ -206,45 +206,56 @@
 		var _in = ['bounceIn', 'bounceInDown', 'bounceInLeft', 'bounceInRight', 'bounceInUp', 'fadeIn', 'fadeInDown', 'fadeInDownBig', 'fadeInLeft', 'fadeInLeftBig', 'fadeInRight', 'fadeInRightBig', 'fadeInUp', 'fadeInUpBig', 'rotateIn', 'rotateInDownLeft', 'rotateInDownRight', 'rotateInUpLeft', 'rotateInUpRight', 'slideInDown', 'slideInLeft', 'slideInRight'];
 		var _out = ['bounceOut', 'bounceOutDown', 'bounceOutLeft', 'bounceOutRight', 'bounceOutUp', 'fadeOut', 'fadeOutDown', 'fadeOutDownBig', 'fadeOutLeft', 'fadeOutLeftBig', 'fadeOutRight', 'fadeOutRightBig', 'fadeOutUp', 'fadeOutUpBig', 'rotateOut', 'rotateOutDownLeft', 'rotateOutDownRight', 'rotateOutUpLeft', 'rotateOutUpRight', 'slideOutDown', 'slideOutLeft', 'slideOutRight'];
 
+		// 假设你有 40 张图片：0.jpg ~ 39.jpg
+		var totalImages = 40;
+
 		// 1. 准备图片路径
 		var imagePaths = [];
-		for (var i = 1; i <= 199; i++) {
+		for (var i = 0; i < totalImages; i++) {
 			imagePaths.push("./images/" + i + ".jpg");
 		}
 
-		// 2. 创建人员数组
+		// 2. 创建人员数组（共 199 个，每个随机用一张图片）
 		var personArray = [];
 		for (var i = 0; i < 199; i++) {
+			var randIndex = Math.floor(Math.random() * totalImages); // [0, 39]
 			personArray.push({
-				image: imagePaths[i],
-				thumb_image: imagePaths[i]  // 如果需要缩略图
+				image: imagePaths[randIndex],
+				thumb_image: imagePaths[randIndex]
 			});
 		}
 
-		// 3. 动画显示部分（修改图片显示代码）
+
 		var s = setInterval(function () {
 			var rand_in = parseInt(Math.random() * _in.length, 10);
 			var rand_out = parseInt(Math.random() * _out.length, 10);
+
 			if (CurPersonNum >= personArray.length) {
 				CurPersonNum = 0;
 			}
-			$('.show_info').show();
-			$('.show_info').addClass(_in[rand_in]);
+
+			// step 1: 播放退出动画 + 隐藏
+			$('.show_info').addClass(_out[rand_out]);
 			setTimeout(function () {
-				$('.show_info').removeClass(_in[rand_in]);
-				// 使用数组中的实际图片路径
-				var img = document.getElementsByClassName('element')[CurPersonNum].getElementsByTagName('img')[0];
+				$('.show_info').removeClass(_out[rand_out]);
+				$('.show_info').hide();
+
+				// step 2: 切换图片
+				var img = document.querySelector('.show_info img');
 				img.setAttribute('src', personArray[CurPersonNum].image);
 				++CurPersonNum;
+
+				// step 3: 显示 + 播放进入动画
+				$('.show_info').show();
+				$('.show_info').addClass(_in[rand_in]);
+
 				setTimeout(function () {
-					$('.show_info').addClass(_out[rand_out]);
-					setTimeout(function () {
-						$('.show_info').removeClass(_out[rand_out]);
-						$('.show_info').hide();
-					}, 1000);
-				}, 1500);
-			}, 1000);
+					$('.show_info').removeClass(_in[rand_in]);
+				}, 1000);
+
+			}, 1000); // hide + out 动画持续时间
 		}, 4500);
+
 
 
 
