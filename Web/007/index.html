@@ -195,21 +195,34 @@
 
 	<div class="show_info animated" style="display:none;">
 		<div class="info_my">
-			<img width=200px src="img/c.jpg" />
+			<img width=200px src="images/23.jpg" />
 		</div>
 		<div class="intro">❤(^_-)张靖超喜欢张雅惠(-_^)❤</div>
 	</div>
 
 	<script>
-		var personArray = new Array;
 		var CurPersonNum = 0;
 		// animate
 		var _in = ['bounceIn', 'bounceInDown', 'bounceInLeft', 'bounceInRight', 'bounceInUp', 'fadeIn', 'fadeInDown', 'fadeInDownBig', 'fadeInLeft', 'fadeInLeftBig', 'fadeInRight', 'fadeInRightBig', 'fadeInUp', 'fadeInUpBig', 'rotateIn', 'rotateInDownLeft', 'rotateInDownRight', 'rotateInUpLeft', 'rotateInUpRight', 'slideInDown', 'slideInLeft', 'slideInRight'];
 		var _out = ['bounceOut', 'bounceOutDown', 'bounceOutLeft', 'bounceOutRight', 'bounceOutUp', 'fadeOut', 'fadeOutDown', 'fadeOutDownBig', 'fadeOutLeft', 'fadeOutLeftBig', 'fadeOutRight', 'fadeOutRightBig', 'fadeOutUp', 'fadeOutUpBig', 'rotateOut', 'rotateOutDownLeft', 'rotateOutDownRight', 'rotateOutUpLeft', 'rotateOutUpRight', 'slideOutDown', 'slideOutLeft', 'slideOutRight'];
 
-		// 模拟推送数据
+		// 1. 准备图片路径
+		var imagePaths = [];
+		for (var i = 1; i <= 199; i++) {
+			imagePaths.push("./images/" + i + ".jpg");
+		}
+
+		// 2. 创建人员数组
+		var personArray = [];
+		for (var i = 0; i < 199; i++) {
+			personArray.push({
+				image: imagePaths[i],
+				thumb_image: imagePaths[i]  // 如果需要缩略图
+			});
+		}
+
+		// 3. 动画显示部分（修改图片显示代码）
 		var s = setInterval(function () {
-			// get animate
 			var rand_in = parseInt(Math.random() * _in.length, 10);
 			var rand_out = parseInt(Math.random() * _out.length, 10);
 			if (CurPersonNum >= personArray.length) {
@@ -219,9 +232,9 @@
 			$('.show_info').addClass(_in[rand_in]);
 			setTimeout(function () {
 				$('.show_info').removeClass(_in[rand_in]);
-				// 更改展示的图片
+				// 使用数组中的实际图片路径
 				var img = document.getElementsByClassName('element')[CurPersonNum].getElementsByTagName('img')[0];
-				img.setAttribute('src', 'img/b.png');
+				img.setAttribute('src', personArray[CurPersonNum].image);
 				++CurPersonNum;
 				setTimeout(function () {
 					$('.show_info').addClass(_out[rand_out]);
@@ -233,12 +246,7 @@
 			}, 1000);
 		}, 4500);
 
-		// 生成虚拟数据
-		for (var i = 0; i < 199; i++) {
-			personArray.push({
-				image: "img/b.png"
-			});
-		}
+
 
 		var table = new Array;
 		for (var i = 0; i < personArray.length; i++) {
@@ -278,22 +286,6 @@
 				var img = document.createElement('img');
 				img.src = table[i].image;
 				element.appendChild(img);
-
-
-				/*var number = document.createElement( 'div' );
-				number.className = 'number';
-				number.textContent = (i/5) + 1;
-				element.appendChild( number );
-
-				var symbol = document.createElement( 'div' );
-				symbol.className = 'symbol';
-				symbol.textContent = table[ i ];
-				element.appendChild( symbol );
-
-				var details = document.createElement( 'div' );
-				details.className = 'details';
-				details.innerHTML = table[ i + 1 ] + '<br>' + table[ i + 2 ];
-				element.appendChild( details );*/
 
 				var object = new THREE.CSS3DObject(element);
 				object.position.x = Math.random() * 4000 - 2000;
@@ -432,8 +424,6 @@
 
 			transform(targets.table, 2000);
 
-			//
-
 			window.addEventListener('resize', onWindowResize, false);
 
 		}
@@ -481,7 +471,7 @@
 
 			// 让场景通过x轴或者y轴旋转  & z
 			// scene.rotation.x += 0.011;
-			scene.rotation.y += 0.008;
+			scene.rotation.y += 0.001;
 
 			requestAnimationFrame(animate);
 
@@ -500,26 +490,28 @@
 
 		}
 
-	// 获取音频和按钮的引用
-    var audio = document.getElementById('myAudio');
-    var button = document.getElementById('playButton');
+		
 
-    // 添加点击事件监听器到按钮上
-    button.addEventListener('click', function() {
-        // 如果音频处于暂停状态或已经结束，则开始播放音频
-        if (audio.paused || audio.ended) {
-            audio.play(); // 开始播放音频
-            button.textContent = '⏸'; // 更改按钮文本为“暂停”
-            // 可选：添加其他点击效果，如更改按钮样式
-            button.style.backgroundColor = 'red';
-        } else {
-            // 否则，如果音频正在播放，则暂停播放
-            audio.pause(); // 暂停音频
-            button.textContent = '🎧'; // 更改按钮文本回“播放”
-            // 可选：恢复按钮原始样式
-            button.style.backgroundColor = '';
-        }
-    });
+		// 获取音频和按钮的引用
+		var audio = document.getElementById('myAudio');
+		var button = document.getElementById('playButton');
+
+		// 添加点击事件监听器到按钮上
+		button.addEventListener('click', function() {
+			// 如果音频处于暂停状态或已经结束，则开始播放音频
+			if (audio.paused || audio.ended) {
+				audio.play(); // 开始播放音频
+				button.textContent = '⏸'; // 更改按钮文本为“暂停”
+				// 可选：添加其他点击效果，如更改按钮样式
+				button.style.backgroundColor = 'red';
+			} else {
+				// 否则，如果音频正在播放，则暂停播放
+				audio.pause(); // 暂停音频
+				button.textContent = '🎧'; // 更改按钮文本回“播放”
+				// 可选：恢复按钮原始样式
+				button.style.backgroundColor = '';
+			}
+		});
 	</script>
 
 </body>
