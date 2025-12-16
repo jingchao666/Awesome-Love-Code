@@ -187,7 +187,7 @@
 	
 	<div id="menu">
 		<button id="playButton">🎧</button>
-		<button id="table">❤</button>
+		<button id="table">🎄>shengdan
 		<button id="sphere">❤</button>
 		<button id="helix">❤</button>
 		<button id="grid">❤</button>
@@ -413,10 +413,15 @@
 				}
 			}, 8000);
 
-			var button = document.getElementById('table');
-			button.addEventListener('click', function (event) {
-				transform(targets.table, 1000);
-			}, false);
+
+			// var button = document.getElementById('table');
+			// button.addEventListener('click', function (event) {
+			// 	transform(targets.table, 1000);
+			// }, false);
+			document.getElementById('table').addEventListener('click', function (event) {
+				event.preventDefault(); // 防止默认行为（虽然这里没有，但好习惯）
+				window.location.href = 'https://jingchao666.github.io/Awesome-Love-Code/Christmas';
+			});
 
 			var button = document.getElementById('sphere');
 			button.addEventListener('click', function (event) {
