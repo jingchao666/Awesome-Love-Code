@@ -296,8 +296,8 @@
                 for (let i = 1; i <= CONFIG.preload.scanCount; i++) { // 修改循环范围为1到200
                     // 使用padStart方法确保数字始终为3位数，前面不足的部分用0填充
                     let fileName = i.toString().padStart(3, '0');
-                    //const pathPng = `./images_huihui/${fileName}.jpg`; // 构建图片路径
-                    const pathPng = `./images_huihui/123.jpg`; // 构建图片路径
+                    const pathPng = `./images_huihui/${fileName}.jpg`; // 构建图片路径
+                    //const pathPng = `./images_huihui/123.jpg`; // 构建图片路径
                     loader.load(pathPng, 
                         (t) => { t.colorSpace = THREE.SRGBColorSpace; addPhotoToScene(t); },
                         undefined,
@@ -921,5 +921,6 @@
     </script>
 </body>
 </html>
+
 
 
