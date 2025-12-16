@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grand Luxury Tree - Christmas Edition</title>
+    <title>小惠照片墙——圣诞版</title>
     <style>
         /* 修改背景为深色渐变，不再是纯黑 */
         body { 
@@ -170,7 +170,7 @@
 
     <div id="loader">
         <div class="spinner"></div>
-        <div class="loader-text">Loading Memories</div>
+        <div class="loader-text">加载中 请稍等...</div>
     </div>
 
     <div id="canvas-container"></div>
@@ -281,6 +281,8 @@
         // --- 增强版图片加载系统 ---
         function loadPredefinedImages() {
             const loader = new THREE.TextureLoader();
+            
+            // 加载预定义的图片列表
             CONFIG.preload.images.forEach(url => {
                 loader.load(url, 
                     (t) => { t.colorSpace = THREE.SRGBColorSpace; addPhotoToScene(t); },
@@ -289,19 +291,16 @@
                 );
             });
 
+            // 自动扫描本地图片，这里假设图片名是从001到200
             if (CONFIG.preload.autoScanLocal) {
-                for (let i = 1; i <= CONFIG.preload.scanCount; i++) {
-                    const pathJpg = `./images/(${i}).png`;
-                    const pathPng = `./images/(${i}).png`;
-                    loader.load(pathJpg, 
+                for (let i = 1; i <= CONFIG.preload.scanCount; i++) { // 修改循环范围为1到200
+                    // 使用padStart方法确保数字始终为3位数，前面不足的部分用0填充
+                    let fileName = i.toString().padStart(3, '0');
+                    const pathPng = `./images22/${fileName}.jpg`; // 构建图片路径
+                    loader.load(pathPng, 
                         (t) => { t.colorSpace = THREE.SRGBColorSpace; addPhotoToScene(t); },
-                        () => {
-                             loader.load(pathPng, 
-                                (t) => { t.colorSpace = THREE.SRGBColorSpace; addPhotoToScene(t); },
-                                undefined,
-                                () => {} 
-                             );
-                        }
+                        undefined,
+                        () => {} // 如果需要在图片加载失败时执行某些操作，可以在这里添加逻辑
                     );
                 }
             }
