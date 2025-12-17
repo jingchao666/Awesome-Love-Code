@@ -124,12 +124,17 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.9);
             border-radius: 4px;
             overflow: hidden; 
-            opacity: 1;         
+            opacity: 0;                /* ✅ 默认隐藏 */
             pointer-events: none;
             z-index: 50;
             background: #000;
-            transition: opacity 0.5s ease; 
+            transition: opacity 0.4s ease;
         }
+
+        #webcam-wrapper.show {
+            opacity: 1;
+        }
+
         
         #webcam {
             width: 100%;
@@ -137,6 +142,38 @@
             object-fit: cover;
             transform: scaleX(-1); 
         }
+        
+        /* 摄像头画面显示开关 */
+        #camera-visibility-toggle {
+            position: fixed;
+            bottom: 250px;   /* 在摄像头原位置上方 */
+            left: 30px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(212, 175, 55, 0.15);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            color: #ffd700;
+            font-size: 18px;
+            line-height: 42px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            z-index: 60;
+            transition: all 0.25s ease;
+        }
+
+        #camera-visibility-toggle:hover {
+            background: rgba(212, 175, 55, 0.28);
+            transform: scale(1.08);
+        }
+
+        #camera-visibility-toggle.active {
+            background: rgba(212, 175, 55, 0.35);
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+        }
+
 
         /* Debug info for gestures */
         #debug-info {
@@ -150,6 +187,39 @@
             padding: 2px 5px;
             pointer-events: none;
         }
+        
+        /* 音乐开关按钮 */
+        #music-toggle {
+            position: fixed;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255, 215, 0, 0.15); /* 金色呼应相框 */
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 215, 0, 0.35);
+            color: #ffd700;
+            font-size: 18px;
+            line-height: 42px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            z-index: 20;
+            transition: all 0.25s ease;
+        }
+
+        #music-toggle:hover {
+            background: rgba(255, 215, 0, 0.28);
+            transform: translateX(-50%) scale(1.08);
+        }
+
+        #music-toggle.active {
+            background: rgba(255, 215, 0, 0.35);
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+        }
+
     </style>
     
     <style>
@@ -173,12 +243,26 @@
         <div class="loader-text">加载中 请稍等...</div>
     </div>
 
+    <!-- 🎵 背景音乐 -->
+    <audio id="bgm" src="./music/Christmas List.mp3" loop preload="auto"></audio>
+
+    <!-- 🎛 音乐开关按钮 -->
+    <div id="music-toggle" title="音乐开关">
+        🎧
+    </div>
+
+    <!-- 🎥 摄像头画面显示开关 -->
+    <div id="camera-visibility-toggle" title="显示/隐藏摄像头画面">
+        👁
+    </div>
+
+
     <div id="canvas-container"></div>
 
     <div id="ui-layer">
         <h1>Merry Christmas</h1>
         
-        <div class="controls-wrapper">
+        <!-- <div class="controls-wrapper">
             <div class="btn-group">
                 <label class="upload-btn">
                     Select Folder
@@ -193,7 +277,7 @@
             <div class="hint-text">Use "Select Folder" to load all photos at once</div>
             <div class="hint-text" style="opacity: 0.7; font-size: 8px;">Or put photos in "./images/" (1.jpg - 30.jpg)</div>
         </div>
-    </div>
+    </div> -->
 
     <div id="webcam-wrapper">
         <video id="webcam" autoplay playsinline></video>
@@ -256,6 +340,8 @@
         let handLandmarker, video;
         let caneTexture; 
         let snowSystem; // 新增：雪花系统
+        let bgm;// 背景音乐
+        let bgmOn = false;// 音乐开关
         const debugInfo = document.getElementById('debug-info');
 
         async function init() {
@@ -268,7 +354,7 @@
             createSnow(); // 新增：创建雪花
             loadPredefinedImages();
             setupPostProcessing();
-            setupEvents();
+            // setupEvents();
             await initMediaPipe();
             
             const loader = document.getElementById('loader');
@@ -276,6 +362,11 @@
             setTimeout(() => loader.remove(), 800);
 
             animate();
+
+            bgm = document.getElementById('bgm');
+            bgm.volume = 0.4;
+            
+
         }
 
         // --- 增强版图片加载系统 ---
@@ -297,7 +388,6 @@
                     // 使用padStart方法确保数字始终为3位数，前面不足的部分用0填充
                     let fileName = i.toString().padStart(3, '0');
                     const pathPng = `./images_huihui/${fileName}.jpg`; // 构建图片路径
-                    //const pathPng = `./images_huihui/123.jpg`; // 构建图片路径
                     loader.load(pathPng, 
                         (t) => { t.colorSpace = THREE.SRGBColorSpace; addPhotoToScene(t); },
                         undefined,
@@ -306,6 +396,73 @@
                 }
             }
         }
+
+        // --- 音乐控制(淡入淡出) ---
+        function fadeInBGM(duration = 2.5) {
+            bgm.volume = 0;
+            bgm.play();
+            const start = performance.now();
+
+            function step() {
+                const t = (performance.now() - start) / (duration * 1000);
+                bgm.volume = Math.min(t * 0.4, 0.4);
+                if (t < 1) requestAnimationFrame(step);
+            }
+            step();
+        }
+
+        function fadeOutBGM(duration = 1.8) {
+            const startVol = bgm.volume;
+            const start = performance.now();
+
+            function step() {
+                const t = (performance.now() - start) / (duration * 1000);
+                bgm.volume = startVol * (1 - t);
+                if (t < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    bgm.pause();
+                }
+            }
+            step();
+        }
+
+        // 音乐开关按钮事件
+        const musicBtn = document.getElementById('music-toggle');
+        musicBtn.addEventListener('click', () => {
+            bgmOn = !bgmOn;
+
+            if (bgmOn) {
+                fadeInBGM();
+                musicBtn.classList.add('active');
+                musicBtn.textContent = '⏸';
+            } else {
+                fadeOutBGM();
+                musicBtn.classList.remove('active');
+                musicBtn.textContent = '🎧';
+            }
+        });
+
+        // --- 摄像头画面显示控制 ---
+        const camViewBtn = document.getElementById('camera-visibility-toggle');
+        const webcamWrapper = document.getElementById('webcam-wrapper');
+
+        let webcamVisible = false; // 默认不显示
+
+        camViewBtn.addEventListener('click', () => {
+            webcamVisible = !webcamVisible;
+
+            if (webcamVisible) {
+                webcamWrapper.style.opacity = 1;
+                camViewBtn.classList.add('active');
+                camViewBtn.textContent = '🙈';
+            } else {
+                webcamWrapper.style.opacity = 0;
+                camViewBtn.classList.remove('active');
+                camViewBtn.textContent = '👁';
+            }
+        });
+
 
         function initThree() {
             const container = document.getElementById('canvas-container');
@@ -508,7 +665,8 @@
                 const r = rMax * (0.8 + Math.random() * 0.4); 
                 this.posTree.set(Math.cos(angle) * r, y, Math.sin(angle) * r);
 
-                let rScatter = this.isDust ? (12 + Math.random()*20) : (8 + Math.random()*12);
+                // let rScatter = this.isDust ? (12 + Math.random()*20) : (8 + Math.random()*12);
+                let rScatter = this.isDust ? (20 + Math.random()*35) : (14 + Math.random()*22);
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos(2 * Math.random() - 1);
                 this.posScatter.set(
@@ -866,26 +1024,26 @@
             }
         }
 
-        function setupEvents() {
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                composer.setSize(window.innerWidth, window.innerHeight);
-            });
+        // function setupEvents() {
+        //     window.addEventListener('resize', () => {
+        //         camera.aspect = window.innerWidth / window.innerHeight;
+        //         camera.updateProjectionMatrix();
+        //         renderer.setSize(window.innerWidth, window.innerHeight);
+        //         composer.setSize(window.innerWidth, window.innerHeight);
+        //     });
             
-            document.getElementById('file-input').addEventListener('change', handleImageUpload);
-            document.getElementById('folder-input').addEventListener('change', handleImageUpload);
+        //     document.getElementById('file-input').addEventListener('change', handleImageUpload);
+        //     document.getElementById('folder-input').addEventListener('change', handleImageUpload);
             
-            window.addEventListener('keydown', (e) => {
-                if (e.key.toLowerCase() === 'h') {
-                    const controls = document.querySelector('.controls-wrapper');
-                    if (controls) controls.classList.toggle('ui-hidden');
-                    const webcam = document.getElementById('webcam-wrapper');
-                    if(webcam) webcam.classList.toggle('ui-hidden');
-                }
-            });
-        }
+        //     window.addEventListener('keydown', (e) => {
+        //         if (e.key.toLowerCase() === 'h') {
+        //             const controls = document.querySelector('.controls-wrapper');
+        //             if (controls) controls.classList.toggle('ui-hidden');
+        //             const webcam = document.getElementById('webcam-wrapper');
+        //             if(webcam) webcam.classList.toggle('ui-hidden');
+        //         }
+        //     });
+        // }
 
         function animate() {
             requestAnimationFrame(animate);
@@ -921,6 +1079,3 @@
     </script>
 </body>
 </html>
-
-
-
