@@ -49,6 +49,48 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+
+        #loading-state,
+        #ready-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ready-text {
+            color: #fceea7;
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            margin-bottom: 24px;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(252, 238, 167, 0.5);
+        }
+
+        #enter-btn {
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            color: #ffd700;
+            padding: 14px 25px;
+            font-size: 15px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+            transition: all 0.3s ease;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #enter-btn:hover {
+            background: rgba(255, 215, 0, 0.75);
+            color: #000;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.7);
+            transform: scale(1.05);
+        }
+
+
         /* Typography */
         h1 { 
             color: #fceea7; font-size: 56px; margin: 0; font-weight: 400; 
@@ -239,9 +281,19 @@
 <body>
 
     <div id="loader">
-        <div class="spinner"></div>
-        <div class="loader-text">加载中 请稍等...</div>
+        <!-- 加载中状态 -->
+        <div id="loading-state">
+            <div class="spinner"></div>
+            <div class="loader-text">加载中 请稍等...</div>
+        </div>
+
+        <!-- 准备进入状态 -->
+        <div id="ready-state" style="display:none;">
+            <div class="ready-text">准备好迎接一场奇妙的体验了吗？</div>
+            <button id="enter-btn">准备好啦~</button>
+        </div>
     </div>
+
 
     <!-- 🎵 背景音乐 -->
     <audio id="bgm" src="./music/Christmas List.mp3" loop preload="auto"></audio>
@@ -357,14 +409,42 @@
             // setupEvents();
             await initMediaPipe();
             
+            // const loader = document.getElementById('loader');
+            // loader.style.opacity = 0;
+            // setTimeout(() => loader.remove(), 800);
             const loader = document.getElementById('loader');
-            loader.style.opacity = 0;
-            setTimeout(() => loader.remove(), 800);
+            const loadingState = document.getElementById('loading-state');
+            const readyState = document.getElementById('ready-state');
+            const enterBtn = document.getElementById('enter-btn');
+
+            // 加载完成后切换状态
+            setTimeout(() => {
+                loadingState.style.display = 'none';
+                readyState.style.display = 'flex';
+            }, 600);
+
+            // 点击「准备好了」
+            enterBtn.addEventListener('click', () => {
+                // 播放音乐（等同于音乐开关）
+                if (!bgmOn) {
+                    bgmOn = true;
+                    fadeInBGM();
+                    musicBtn.classList.add('active');
+                    musicBtn.textContent = '⏸';
+                }
+
+                // 淡出 loader
+                loader.style.opacity = 0;
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 800);
+            });
+
 
             animate();
 
             bgm = document.getElementById('bgm');
-            bgm.volume = 0.4;
+            bgm.volume = 0.2;
             
 
         }
@@ -405,7 +485,7 @@
 
             function step() {
                 const t = (performance.now() - start) / (duration * 1000);
-                bgm.volume = Math.min(t * 0.4, 0.4);
+                bgm.volume = Math.min(t * 0.2, 0.2);
                 if (t < 1) requestAnimationFrame(step);
             }
             step();
@@ -884,7 +964,7 @@
             const photoMat = new THREE.MeshBasicMaterial({ 
                 map: texture, 
                 side: THREE.DoubleSide,
-                color: 0xdddddd 
+                color: 0xdddddd
             });
             const photo = new THREE.Mesh(photoGeo, photoMat);
             photo.position.z = 0.04;
@@ -1085,4 +1165,3 @@
     </script>
 </body>
 </html>
-
