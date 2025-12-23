@@ -758,6 +758,19 @@
             }
 
             update(dt, mode, focusTargetMesh) {
+
+            // ⭐ 星星闪烁（不影响照片、不影响尘埃）
+            if (this.type.startsWith('STAR')) {
+                const glow =
+                    0.6 +
+                    0.4 * Math.sin(clock.elapsedTime * 3 + this.mesh.id * 0.3);
+
+                if (this.mesh.material.emissive) {
+                    this.mesh.material.emissiveIntensity = glow;
+                }
+            }
+
+
                 let target = this.posTree;
                 
                 if (mode === 'SCATTER') target = this.posScatter;
@@ -835,6 +848,38 @@
 
         function createParticles() {
             const sphereGeo = new THREE.SphereGeometry(0.5, 32, 32); 
+
+            // ⭐ 装饰用立体星星（比树顶星小、薄）
+            function createStarGeometry() {
+                const shape = new THREE.Shape();
+                const points = 5;
+                const outerR = 0.6;
+                const innerR = 0.28;
+
+                for (let i = 0; i < points * 2; i++) {
+                    const angle = (i * Math.PI) / points;
+                    const r = (i % 2 === 0) ? outerR : innerR;
+                    const x = Math.cos(angle) * r;
+                    const y = Math.sin(angle) * r;
+                    if (i === 0) shape.moveTo(x, y);
+                    else shape.lineTo(x, y);
+                }
+                shape.closePath();
+
+                const geo = new THREE.ExtrudeGeometry(shape, {
+                    depth: 0.25,
+                    bevelEnabled: true,
+                    bevelThickness: 0.08,
+                    bevelSize: 0.08,
+                    bevelSegments: 2
+                });
+
+                geo.center();
+                return geo;
+            }
+
+            const starDecoGeo = createStarGeometry();
+
             const boxGeo = new THREE.BoxGeometry(0.55, 0.55, 0.55); 
             const curve = new THREE.CatmullRomCurve3([
                 new THREE.Vector3(0, -0.5, 0), new THREE.Vector3(0, 0.3, 0),
@@ -849,6 +894,7 @@
                 emissive: 0x443300,   
                 emissiveIntensity: 0.3
             });
+
 
             const greenMat = new THREE.MeshStandardMaterial({
                 color: CONFIG.colors.deepGreen,
@@ -869,12 +915,19 @@
                 const rand = Math.random();
                 let mesh, type;
                 
+                // if (rand < 0.40) {
+                //     mesh = new THREE.Mesh(boxGeo, greenMat);
+                //     type = 'BOX';
+                // } else if (rand < 0.70) {
+                //     mesh = new THREE.Mesh(boxGeo, goldMat);
+                //     type = 'GOLD_BOX';
+                // }
                 if (rand < 0.40) {
-                    mesh = new THREE.Mesh(boxGeo, greenMat);
-                    type = 'BOX';
+                    mesh = new THREE.Mesh(starDecoGeo, greenMat);
+                    type = 'STAR_GREEN';
                 } else if (rand < 0.70) {
-                    mesh = new THREE.Mesh(boxGeo, goldMat);
-                    type = 'GOLD_BOX';
+                    mesh = new THREE.Mesh(starDecoGeo, goldMat);
+                    type = 'STAR_GOLD';
                 } else if (rand < 0.92) {
                     mesh = new THREE.Mesh(sphereGeo, goldMat);
                     type = 'GOLD_SPHERE';
@@ -1165,4 +1218,3 @@
     </script>
 </body>
 </html>
-
